@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<style>
+			body {background-color: black;}
+			#ballDiv {
+				height: 50px;
+				width: 50px;
+				border-radius: 25px;
+				background-color: yellow;
+				position: absolute;
+			}
+			
+			.group {display: inline-block;}
+		</style>
+	</head>
+	<body>
+		<div id="ballDiv"></div>
+		<div class="group">
+			<label for="speed" style="color:white">Speed</label>
+			<br />
+			<input id="speed" type="range" min="1" max="10" value="5" onchange="setSpeed()">
+		</div>
+		<script>
+			var ballWidth = 50;
+			var ballHeight = 50;
+			var x = Math.floor(Math.random()*window.innerWidth);
+			var y = Math.floor(Math.random()*window.innerHeight);
+			var xstep;
+			var ystep;
+			var ydir = 1;
+			var xdir = 1;
+			var ballDiv = document.getElementById("ballDiv");
+			setStepLengths();
+			setNewPosition()
+			changeColor();
+			var timerId;
+			setSpeed();
+			
+			function moveBall(){
+					
+				setNewPosition()
+				
+				if(x > window.innerWidth - ballWidth && xdir > 0) {
+					xdir = -1;
+					setNewPosition()
+					setStepLengths();
+					changeColor();
+				}
+				if(x < 0 && xdir < 0) {
+					xdir = 1;
+					setNewPosition()
+					setStepLengths();
+					changeColor();
+				}
+				if(y > window.innerHeight - ballHeight && ydir > 0) {
+					ydir = -1;
+					setNewPosition()
+					setStepLengths();
+					changeColor();
+				}
+				if(y < 0 && ydir < 0) {
+					ydir = 1;
+					setNewPosition()
+					setStepLengths();
+					changeColor();
+				}
+				ballDiv.style.left = x + "px";
+				ballDiv.style.top = y + "px";
+			}
+			
+			function setSpeed(){
+				let speed = document.getElementById("speed").value;
+				clearInterval(timerId);
+				timerId = setInterval(moveBall, 20 - speed * 2);
+			}
+			
+			function changeColor(){
+				const r = Math.floor(Math.random() * 256);
+				const g = Math.floor(Math.random() * 256);
+				const b = Math.floor(Math.random() * 256);
+				ballDiv.style.backgroundColor = "rgb(" + r + "," + g + "," + b + ")";
+			}
+
+			function setNewPosition(){
+				x = x + xdir * xstep * 3;
+				y = y + ydir * ystep * 3;
+			}
+			
+			function setStepLengths(){
+				xstep = Math.floor(Math.random() * 6) + 1;
+				ystep = Math.floor(Math.random() * 6) + 1;
+				var hyp = Math.sqrt(Math.pow(xstep, 2) + Math.pow(ystep, 2));
+				xstep /= hyp;
+				ystep /= hyp;
+			}
+		</script>
+	</body>
+</html>
