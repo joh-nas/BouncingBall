@@ -3,11 +3,7 @@
 	<head>
 		<style>
 			body {background-color: black;}
-			#ballDiv {
-				height: 50px;
-				width: 50px;
-				border-radius: 25px;
-				background-color: yellow;
+			.ballDiv {
 				position: absolute;
 			}
 			
@@ -15,84 +11,158 @@
 		</style>
 	</head>
 	<body>
-		<div id="ballDiv"></div>
+		<div id="ballContainer">
+		</div>
 		<div class="group">
 			<label for="speed" style="color:white">Speed</label>
 			<br />
 			<input id="speed" type="range" min="1" max="10" value="5" onchange="setSpeed()">
 		</div>
+		<div class="group">
+			<label for="numBalls" style="color:white">Number of balls</label>
+			<br />
+			<input id="numBalls" type="range" min="1" max="30" value="10" onchange="setBalls();initiate()">
+		</div>
+		<div class="group">
+			<label for="ballSize" style="color:white">ballSize</label>
+			<br />
+			<input id="ballSize" type="range" min="10" max="50" value="20" onchange="setBallSize()">
+		</div>
 		<script>
-			var ballWidth = 50;
-			var ballHeight = 50;
-			var x = Math.floor(Math.random()*window.innerWidth);
-			var y = Math.floor(Math.random()*window.innerHeight);
-			var xstep;
-			var ystep;
-			var ydir = 1;
-			var xdir = 1;
-			var ballDiv = document.getElementById("ballDiv");
-			setStepLengths();
-			setNewPosition()
-			changeColor();
+			var xstep = [];
+			var ystep = [];
+			var x = [];
+			var y = [];
+			var xdir = [];
+			var ydir = [];
+			var ballDiv = [];
+			var numberOfBalls;
+			setBalls();
+			initiate();		
 			var timerId;
 			setSpeed();
 			
 			function moveBall(){
-					
-				setNewPosition()
-				
-				if(x > window.innerWidth - ballWidth && xdir > 0) {
-					xdir = -1;
-					setNewPosition()
-					setStepLengths();
-					changeColor();
+				for(let i=0; i<numberOfBalls; i++){
+					setNewPosition(i);					
+
+					checkRightEdge(i);
+					checkLeftEdge(i);
+					checkBottomEdge(i);
+					checkTopEdge(i);
+
+					ballDiv[i].style.left = x[i] + "px";
+					ballDiv[i].style.top = y[i] + "px";
 				}
-				if(x < 0 && xdir < 0) {
-					xdir = 1;
-					setNewPosition()
-					setStepLengths();
-					changeColor();
-				}
-				if(y > window.innerHeight - ballHeight && ydir > 0) {
-					ydir = -1;
-					setNewPosition()
-					setStepLengths();
-					changeColor();
-				}
-				if(y < 0 && ydir < 0) {
-					ydir = 1;
-					setNewPosition()
-					setStepLengths();
-					changeColor();
-				}
-				ballDiv.style.left = x + "px";
-				ballDiv.style.top = y + "px";
+				detectCollision();
 			}
 			
+			function initiate(){
+				for(let i=0; i<numberOfBalls; i++){
+					x[i] = Math.floor(Math.random()*window.innerWidth);
+					y[i] = Math.floor(Math.random()*window.innerHeight);
+					ydir[i] = Math.random() > 0.5 ? 1 : -1;
+					xdir[i] = Math.random() > 0.5 ? 1 : -1;
+					setStepLengths(i);
+					setNewPosition(i);
+					changeColor(i);
+				}
+			}
+			
+			function setBalls(){
+				numberOfBalls = document.getElementById("numBalls").value;
+				document.querySelector("#ballContainer").innerHTML = "";
+				for(let i=0; i<numberOfBalls; i++){
+					document.querySelector("#ballContainer").innerHTML += '<div class="ballDiv"></div>';
+				}
+				ballDiv = document.querySelectorAll(".ballDiv");
+				setBallSize();
+			}
+			
+			function setBallSize(){
+				ballSize = document.getElementById("ballSize").value;
+				for(let i=0; i<numberOfBalls; i++){
+					ballDiv[i].style.height = ballSize + "px";
+					ballDiv[i].style.width = ballSize + "px";
+					ballDiv[i].style.borderRadius = ballSize/2 + "px";
+				}
+			}
+
+			function detectCollision() {
+				for(let i=1; i<numberOfBalls; i++){
+					for(let j=0; j<i; j++){
+						if(Math.abs(x[i] - x[j]) < ballSize*0.8 && Math.abs(y[i] - y[j]) < ballSize*0.8){
+							xdir[i] *= -1;
+							ydir[i] *= -1;
+							xdir[j] *= -1;
+							ydir[j] *= -1;
+							changeColor(i);
+							changeColor(j);
+						}
+					}
+				}
+			}
+			
+			function checkRightEdge(i){
+				if(x[i] > window.innerWidth - ballSize && xdir[i] > 0) {
+					xdir[i] = -1;
+					setNewPosition(i)
+					setStepLengths(i);
+					changeColor(i);
+				}
+			}
+			
+			function checkLeftEdge(i){
+				if(x[i] < 0 && xdir[i] < 0) {
+					xdir[i] = 1;
+					setNewPosition(i)
+					setStepLengths(i);
+					changeColor(i);
+				}
+			}
+
+			function checkBottomEdge(i){
+				if(y[i] > window.innerHeight - ballSize && ydir[i] > 0) {
+					ydir[i] = -1;
+					setNewPosition(i)
+					setStepLengths(i);
+					changeColor(i);
+				}
+			}
+
+			function checkTopEdge(i){
+				if(y[i] < 0 && ydir[i] < 0) {
+					ydir[i] = 1;
+					setNewPosition(i)
+					setStepLengths(i);
+					changeColor(i);
+				}
+			}
+
 			function setSpeed(){
 				let speed = document.getElementById("speed").value;
 				clearInterval(timerId);
-				timerId = setInterval(moveBall, 20 - speed * 2);
+				timerId = setInterval(moveBall, 10 - speed);
 			}
 			
-			function changeColor(){
-				const r = Math.floor(Math.random() * 256);
-				const g = Math.floor(Math.random() * 256);
-				const b = Math.floor(Math.random() * 256);
-				ballDiv.style.backgroundColor = "rgb(" + r + "," + g + "," + b + ")";
+			function changeColor(i){
+				let r = Math.floor(Math.random() * 256);
+				let g = Math.floor(Math.random() * 256);
+				let b = Math.floor(Math.random() * 256);
+				ballDiv[i].style.backgroundColor = "rgb(" + r + "," + g + "," + b + ")";
 			}
 
-			function setNewPosition(){
-				x = x + xdir * xstep * 3;
-				y = y + ydir * ystep * 3;
+			function setNewPosition(i){
+				x[i] = x[i] + xdir[i] * xstep[i] * 2;
+				y[i] = y[i] + ydir[i] * ystep[i] * 2;
 			}
 			
-			function setStepLengths(){
-				xstep = Math.floor(Math.random() * 6) + 1;
-				ystep = Math.floor(Math.random() * 6) + 1;
-				var hyp = Math.sqrt(Math.pow(xstep, 2) + Math.pow(ystep, 2));
-				xstep /= hyp;
-				ystep /= hyp;
+			function setStepLengths(i){
+				xstep[i] = Math.floor(Math.random() * 6) + 1;
+				ystep[i] = Math.floor(Math.random() * 6) + 1;
+				var hyp = Math.sqrt(Math.pow(xstep[i], 2) + Math.pow(ystep[i], 2));
+				xstep[i] /= hyp;
+				ystep[i] /= hyp;
 			}
 		</script>
 	</body>
